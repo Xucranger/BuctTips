@@ -76,6 +76,7 @@ if __name__ == '__main__':
             'pois': []
         },
     }
+    
     name = '徐鹤翔'
     cookies['eai-sess'] = 'iudq9m6s0jbl42duo55oe6rf64'
     at_school_data = data.copy()
