@@ -1,31 +1,87 @@
+import json
+import time
 import requests
-from bs4 import BeautifulSoup
-import re
-import urllib3
-import execjs
 
-data = {
-    "sch_id": 143,
-    "stud_no": "2019030160",
-    "stud_name": "徐鹤翔",
-    "sign": "e28e69de5b9a6e00fe50b5fad940de4a"
-}
+url = "https://eai.buct.edu.cn/ncov/wap/default/save"
 
-header = {
-    "Host": "wechat.v2.traceint.com",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 NetType/WIFI MicroMessenger/7.0.20.1781(0x6700143B) WindowsWechat(0x63030532)",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    "Accept-Encoding": "gzip, deflate",
-    "Cookie": "Hm_lvt_7ecd21a13263a714793f376c18038a87=1634180809,1634640932,1634649114; Hm_lpvt_7ecd21a13263a714793f376c18038a87=1634652733; wechatSESS_ID=102cfbcf220ce2fd5a7d7097cbf9e4d77614f44879544bb2; SERVERID=b9fc7bd86d2eed91b23d7347e0ee995e|1634689716|1634689713",
-    "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
-}
+def post_and_print(s, url, data, headers, cookies):
+    result = s.post(url, data=data, headers=headers, cookies=cookies)
+    print(
+        time.strftime("%m/%d %H:%M:%S ", time.localtime()) + name + ' ' +
+        json.loads(result.text)['m'])
 
-url = "http://wechat.v2.traceint.com/index.php/schoolpush/registerLogin?sch_id=143&stud_no=2019030160&stud_name=%E5%BE%90%E9%B9%A4%E7%BF%94&sign=e28e69de5b9a6e00fe50b5fad940de4a"
 
-resp = requests.get(url, headers=header, data=data)
+if __name__ == '__main__':
 
-print(resp)
+    # init
+    s = requests.session()
+    headers = {}
 
-resp.close()
+    # report
+    cookies = {}
+    data = {
+        'sfzx': '0',  # 是否在校
+        'sfzgn': '1',  # 所在地点中国大陆
+        'zgfxdp': '0',  # 不在中高风险地区
+        'jcjgqr': '0',  # 正常，非疑似/确诊
+        'sfcxtz': '0',  # 没有出现发热、乏力、干咳、呼吸困难等症状
+        'sfjcbh': '0',  # 今日是否接触无症状感染/疑似/确诊人群
+        'mjry': '0',  # 今日是否接触密接人员
+        'csmjry': '0',  # 近14日内本人/共同居住者是否去过疫情发生场所
+        'sfcyglq': '0',  # 是否处于观察期
+        'szsqsfybl': '0',  # 所在社区是否有确诊病例
+        'sfcxzysx': '0',  # 是否有任何与疫情相关的， 值得注意的情况
+        'tw': '1',  # 体温范围（下标从 1 开始），此处是36 - 36.5
+        'area': '西藏自治区 日喀则市 定日县',  # 所在区域
+        'province': '西藏自治区',  # 所在省
+        'city': '日喀则市',  # 所在市
+        'address': '西藏自治区日喀则市定日县珠峰大本营',  # 地址
+        # 'sfcyglq': '0',  # 是否处于隔离期
+        # 'sfyzz': '0',  # 是否有症状
+        # 'askforleave': '0',  # 是否请假外出
+        'qksm': '',  #其他情况
+        'geo_api_info': {
+            'type': 'complete',
+            'info': 'SUCCESS',
+            'status': 1,
+            'Eia': 'jsonp_913580_',
+            'position': {
+                'O': 113.0270592,  # 经度
+                'P': 22.5524345,  # 纬度
+                'lng': 113.0270592,  # 经度
+                'lat': 22.5524345  # 纬度
+            },
+            'message': 'Get+ipLocation+success.Get+address+success.',
+            'location_type': 'ip',
+            'accuracy': None,
+            'isConverted': True,
+            'addressComponent': {
+                'citycode': '',
+                'adcode': '',  # 行政区划代码
+                'businessAreas': [],
+                'neighborhoodType': '',
+                'neighborhood': '',
+                'building': '',
+                'buildingType': '',
+                'street': '',
+                'streetNumber': '',
+                'province': '',  # 所在省
+                'city': '',  # 所在市
+                'district': '',  # 所在区
+                'township': ''  # 所在街道
+            },
+            'formattedAddress': '',  # 拼接后的地址
+            'roads': [],
+            'crosses': [],
+            'pois': []
+        },
+    }
+    name = '徐鹤翔'
+    cookies['eai-sess'] = 'iudq9m6s0jbl42duo55oe6rf64'
+    at_school_data = data.copy()
+    at_school_data.update(sfzx='1',
+                          area='北京市 昌平区',
+                          province='北京市',
+                          city='北京市',
+                          address='北京市昌平区南涧路29号')
+    post_and_print(s, url, at_school_data, headers, cookies)
