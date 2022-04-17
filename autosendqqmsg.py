@@ -14,26 +14,43 @@ import _thread
 import threading
 import sys
 import os
+from multiprocessing import Process
+from multiprocessing import Lock
 
+lock=threading.Lock()
 class sendMsg():
     def __init__(self,receiver,msg):
         self.receiver=receiver
         self.msg=msg
-    
+
     #设置剪贴版内容
-    def setText(self):
+    # def setText(self):
+    #     self._lock.acquire()
+    #     w.OpenClipboard()
+    #     w.EmptyClipboard()
+    #     w.SetClipboardData(win32con.CF_UNICODETEXT, self.msg)
+    #     w.CloseClipboard()
+       
+    #获取剪切板内容
+    # def getText(self):
+    #     w.OpenClipboard()
+    #     d = w.GetClipboardData(win32con.CF_UNICODETEXT)
+    #     w.CloseClipboard()
+    #     return d
+    #发送消息
+    def sendmsg(self):
+        # self._lock.acquire()
         w.OpenClipboard()
         w.EmptyClipboard()
         w.SetClipboardData(win32con.CF_UNICODETEXT, self.msg)
         w.CloseClipboard()
-    #发送消息
-    def sendmsg(self):
         time1=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         qq=win32gui.FindWindow(None,self.receiver)
         win32gui.SendMessage(qq,win32con.WM_PASTE , 0, 0)
         win32gui.SendMessage(qq, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+        
         print(time1+" sucessfuly send",self.msg)
-
+        # self._lock.release
 
 class myexcel():
     def __init__(self,fileName):
@@ -62,7 +79,7 @@ def getmessage(fileName):
     return choice(lines)
 
 
-def task(data,receiver):
+def task(data,receiver,pause):
 
     if(int(data[2])!=0):
         print('佳人们，小睡一会')
@@ -70,22 +87,22 @@ def task(data,receiver):
     while True:
         msg=data[0]
         qq=sendMsg(receiver,msg)
-        qq.setText()
-        time.sleep(3)
+        lock.acquire()
         qq.sendmsg()
+        lock.release()
         time.sleep(int(data[1]))
     
 
 def main():
 
     # print (os.path.abspath('..'))
-    excel=myexcel('./Desktop/qq/dom.XLSX')
+    excel=myexcel('dom.XLSX')
     receiver=excel.getreceiver()
     rows=excel.get_row_num()
     mythreads=[]
     for i in range(rows-2):
         data=excel.gettasks(i+3)
-        a=threading.Thread(target=task,args=(data,receiver))
+        a=threading.Thread(target=task,args=(data,receiver,i+1))
         a.setDaemon(True)
         mythreads.append(a)
         a.start()
